@@ -1,3 +1,19 @@
+#
+# Copyright © 2016-2026 The Thingsboard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
 name: ThingsBoard CI/CD Pipeline
 
 on:
@@ -17,17 +33,22 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: DAO tests
-        run: mvn test -pl dao "-DskipITs" "-Dmaven.test.failure.ignore=true"
+      - name: Install dependencies
+      # Optimisation pour ne compiler que les modules nécessaires
+        run: mvn clean install -pl common/data,common/util,common/message,application -am -DskipTests
 
-      - name: Common tests
-        run: mvn test -pl "common/data,common/util,common/message" -am -DskipITs "-Dmaven.test.failure.ignore=true"
+      - name: Run 3 module tests
+      # Modules : common/data, common/util, common/message
+        run: mvn test -pl "common/data,common/util,common/message" -DskipITs
 
-      - name: Package Application
-        run: mvn clean install -DskipTests
-
-      - name: Launch ThingsBoard (Simulated Deployment)
+      - name: Launch ThingsBoard (Deployment)
         run: |
-          java -jar application/target/thingsboard.jar & 
-          sleep 60 
-          curl -v http://localhost:8080 || exit 0 # Vérifie si le port répond
+          # On lance l'app en arrière-plan et on envoie tout vers la console GitHub
+          java -Xmx2g -jar application/target/thingsboard-4.4.0-SNAPSHOT.jar &
+          
+          echo "Attente du démarrage (90s)..."
+          # On peut même afficher les dernières lignes pendant l'attente si on veut
+          sleep 90
+          
+          # Vérification finale
+          curl -s --retry 5 --retry-connrefused http://localhost:8080 | grep -q "ThingsBoard"
