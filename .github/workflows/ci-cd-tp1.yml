@@ -44,7 +44,7 @@ jobs:
       - name: Launch ThingsBoard (Deployment)
         run: |
           # On lance l'app en arrière-plan et on envoie tout vers la console GitHub
-          java -Xmx2g -jar application/target/thingsboard-4.4.0-SNAPSHOT.jar &
+          java -Xmx2g -jar application/target/thingsboard-4.4.0-SNAPSHOT-boot.jar &
           
           echo "Attente du démarrage (90s)..."
           # On peut même afficher les dernières lignes pendant l'attente si on veut
