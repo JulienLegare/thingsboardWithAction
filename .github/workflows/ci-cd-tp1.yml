@@ -55,6 +55,12 @@ jobs:
       # Modules : common/data, common/util, common/message
         run: mvn test -pl "common/data,common/util,common/message" -DskipITs
 
+      - name: Install ThingsBoard DB schema
+        run: |
+          chmod +x install/install.sh
+          ./install/install.sh --loadDemo false
+
+
       - name: Launch ThingsBoard (Validation)
         run: |
           # On lance l'app
