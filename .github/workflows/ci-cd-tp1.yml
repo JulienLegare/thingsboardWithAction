@@ -58,7 +58,7 @@ jobs:
       - name: Launch ThingsBoard (Validation)
         run: |
           # On lance l'app
-          java -Xmx2g -jar application/target/thingsboard-4.4.0-SNAPSHOT-boot.jar > tb_logs.txt 2>&1 &
+          java -Xmx2g -jar application/target/*boot.jar > tb_logs.txt 2>&1 &
           
           echo "Attente du démarrage et vérification des logs..."
           sleep 40 # 40 secondes suffisent pour voir si le JAR démarre
