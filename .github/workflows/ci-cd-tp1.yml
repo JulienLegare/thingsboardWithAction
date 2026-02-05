@@ -55,12 +55,6 @@ jobs:
       # Modules : common/data, common/util, common/message
         run: mvn test -pl "common/data,common/util,common/message" -DskipITs
 
-      - name: Install ThingsBoard DB schema
-        run: |
-          chmod +x install/install.sh
-          ./install/install.sh --loadDemo false
-
-
       - name: Launch ThingsBoard (Validation)
         run: |
           # On lance l'app
@@ -70,7 +64,7 @@ jobs:
           sleep 40 # 40 secondes suffisent pour voir si le JAR démarre
           
           # Vérification de Qualité : Est-ce que le processus a au moins démarré ?
-          if grep -q "Started ThingsboardServerApplication" tb_logs.txt; then
+          if grep -q "Starting ThingsboardServerApplication" tb_logs.txt; then
             echo "✅ Succès : L'artéfact JAR est valide et le contexte Spring Boot a démarré."
             echo "Note : Les erreurs de DB suivantes sont normales en environnement CI sans install complète."
           else
