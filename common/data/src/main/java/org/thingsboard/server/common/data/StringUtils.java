@@ -277,4 +277,14 @@ public class StringUtils {
         return result;
     }
 
+    // New functionality
+    public static boolean isSafeDeviceName(String name) {
+    if (name == null || name.trim().length() < 3) {
+        return false;
+    }
+
+    String lowerName = name.toLowerCase();
+    return !lowerName.contains("<script") && !lowerName.contains("javascript:");
+    }
+
 }
