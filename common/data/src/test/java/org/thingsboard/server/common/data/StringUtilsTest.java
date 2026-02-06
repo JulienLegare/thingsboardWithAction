@@ -19,6 +19,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class StringUtilsTest {
@@ -46,6 +48,15 @@ class StringUtilsTest {
         assertThat(StringUtils.truncate("123", maxLength)).isEqualTo("123");
         assertThat(StringUtils.truncate("1234567", maxLength)).isEqualTo("12345...[truncated 2 symbols]");
         assertThat(StringUtils.truncate("1234567", 0)).isEqualTo("1234567");
+    }
+
+    @Test
+    public void testIsSafeDeviceName() {
+        assertTrue(StringUtils.isSafeDeviceName("TEST_Name_01"));
+        assertTrue(StringUtils.isSafeDeviceName("Test_Name"));
+        assertFalse(StringUtils.isSafeDeviceName("ab")); 
+        assertFalse(StringUtils.isSafeDeviceName("<script>alert(1)</script>")); 
+        assertFalse(StringUtils.isSafeDeviceName(null)); 
     }
 
 }

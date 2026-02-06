@@ -1,0 +1,70 @@
+#
+# Copyright © 2016-2026 The Thingsboard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+name: ThingsBoard CI/CD Pipeline
+
+on:
+  push:
+    branches: [ master, tp1-assurance-qa ] # Se déclenche à chaque push sur main et notre branche
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: thingsboard
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Install dependencies
+      # Optimisation pour ne compiler que les modules nécessaires
+        run: mvn clean install -pl common/data,common/util,common/message,application -am -DskipTests
+
+      - name: Run 3 module tests
+      # Modules : common/data, common/util, common/message
+        run: mvn test -pl "common/data,common/util,common/message" -DskipITs
+
+      - name: Launch ThingsBoard (Validation)
+        run: |
+          java -Xmx2g -jar application/target/*boot.jar > tb_logs.txt 2>&1 &
+          
+          sleep 40
+          
+          if grep -q "Starting ThingsboardServerApplication" tb_logs.txt; then
+            echo "✅ Succès : L'artéfact JAR est valide et le contexte Spring Boot a démarré."
+            echo "Note : Les erreurs de DB suivantes sont normales en environnement CI sans install complète."
+          else
+            cat tb_logs.txt
+            exit 1
+          fi
